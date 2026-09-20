@@ -6,6 +6,7 @@ barcha foydalanuvchilar, obunalar, to'lovlar va tarif narxlarini
 boshqarish. Faqat is_admin=True bo'lgan hisob kira oladi.
 """
 
+import os
 from datetime import datetime, timedelta
 
 from fastapi import APIRouter, Depends, HTTPException
@@ -207,3 +208,84 @@ def update_plan(
         "id": plan.id, "name": plan.name, "price_uzs": plan.price_uzs,
         "duration_days": plan.duration_days, "is_active": plan.is_active,
     }
+
+
+@router.post("/self-test-subscription")
+def grant_self_test_subscription(
+    admin: models.User = Depends(auth.get_current_admin),
+    db: Session = Depends(get_db),
+):
+    """
+    FAQAT ADMIN (siz) UCHUN: Payme/Click haqiqiy kalitlari hali sozlanmagan
+    bo'lsa ham, saytni sinash imkoni bo'lishi uchun o'zingizga to'lovsiz,
+    365 kunlik sinov obunasini beradi. Haqiqiy mijozlar bu tugmani ko'rmaydi —
+    ular /subscribe orqali, haqiqiy to'lov qilib obuna oladi.
+    """
+    plan = db.query(models.Plan).filter(models.Plan.is_active == True).first()  # noqa: E712
+    if not plan:
+        raise HTTPException(status_code=404, detail="Faol tarif topilmadi — avval tarif qo'shing")
+
+    existing = (
+        db.query(models.Subscription)
+        .filter(
+            models.Subscription.user_id == admin.id,
+            models.Subscription.status == models.SubscriptionStatus.ACTIVE,
+        )
+        .first()
+    )
+    if existing:
+        existing.end_date = datetime.utcnow() + timedelta(days=365)
+    else:
+        sub = models.Subscription(
+            user_id=admin.id,
+            plan_id=plan.id,
+            status=models.SubscriptionStatus.ACTIVE,
+            start_date=datetime.utcnow(),
+            end_date=datetime.utcnow() + timedelta(days=365),
+        )
+        db.add(sub)
+
+    db.commit()
+    return {"status": "ok", "plan": plan.name}
+
+
+@router.post("/self-test-instagram")
+def link_self_test_instagram(
+    admin: models.User = Depends(auth.get_current_admin),
+    db: Session = Depends(get_db),
+):
+    """
+    FAQAT ADMIN (siz) UCHUN: to'liq Instagram OAuth (redirect URI Meta'da
+    ro'yxatdan o'tishi kerak) hali sozlanmagan bo'lsa ham, serverda saqlangan
+    IG_ACCESS_TOKEN/IG_USER_ID orqali o'zingizga Instagram akkauntini ulaydi.
+    Haqiqiy mijozlar buni ko'rmaydi — ular "Instagram ulash" tugmasi orqali
+    o'z akkauntini OAuth bilan ulaydi.
+    """
+    access_token = os.environ.get("IG_ACCESS_TOKEN")
+    ig_user_id = os.environ.get("IG_USER_ID")
+    if not access_token or not ig_user_id:
+        raise HTTPException(
+            status_code=400,
+            detail="Serverda IG_ACCESS_TOKEN yoki IG_USER_ID sozlanmagan",
+        )
+
+    account = (
+        db.query(models.InstagramAccount)
+        .filter(models.InstagramAccount.user_id == admin.id)
+        .first()
+    )
+    if account:
+        account.access_token = access_token
+        account.ig_user_id = ig_user_id
+        account.connected_at = datetime.utcnow()
+    else:
+        account = models.InstagramAccount(
+            user_id=admin.id,
+            ig_user_id=ig_user_id,
+            access_token=access_token,
+            username="buba_smm",
+        )
+        db.add(account)
+
+    db.commit()
+    return {"status": "ok", "username": account.username}
