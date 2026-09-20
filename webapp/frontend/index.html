@@ -1,0 +1,832 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Buba</title>
+<link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
+<link rel="icon" type="image/png" sizes="64x64" href="favicon-64.png">
+<link rel="apple-touch-icon" sizes="180x180" href="favicon-180.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg: #171310;
+    --bg-panel: #1E1811;
+    --bg-inset: #29211A;
+    --line: #392E22;
+    --text: #F1E9DA;
+    --text-dim: #A99A85;
+    --text-faint: #7A6C5A;
+    --gold: #C89B4A;
+    --gold-bright: #E0B563;
+    --brick: #B4574A;
+    --sage: #8FA37E;
+    --radius: 3px;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--bg);
+    color:var(--text);
+    font-family:'Inter',-apple-system,sans-serif;
+    font-size:15px;
+    line-height:1.55;
+    min-height:100vh;
+    -webkit-font-smoothing:antialiased;
+  }
+  h1,h2,h3,.serif{font-family:'Fraunces',Georgia,serif;}
+  a{color:var(--gold);}
+  ::selection{background:var(--gold);color:#171310;}
+
+  .shell{max-width:760px;margin:0 auto;padding:0 20px 80px;}
+
+  /* ---------- Top bar ---------- */
+  .topbar{
+    display:flex;align-items:baseline;justify-content:space-between;
+    padding:28px 0 20px;
+  }
+  .wordmark{font-size:22px;font-weight:500;letter-spacing:0.2px;display:flex;align-items:center;gap:10px;}
+  .wordmark img{width:32px;height:32px;border-radius:50%;display:block;object-fit:cover;}
+  .who{font-size:13px;color:var(--text-dim);display:flex;align-items:center;gap:14px;}
+  .who button{
+    background:none;border:none;color:var(--text-faint);font:inherit;
+    cursor:pointer;padding:4px 0;border-bottom:1px solid transparent;
+  }
+  .who button:hover{color:var(--text);border-color:var(--text-faint);}
+
+  /* ---------- Auth screen ---------- */
+  .auth-wrap{
+    min-height:calc(100vh - 100px);
+    display:flex;align-items:center;justify-content:center;
+  }
+  .auth-panel{width:100%;max-width:380px;padding:8px 0;}
+  .auth-tabs{display:flex;gap:24px;margin-bottom:28px;border-bottom:1px solid var(--line);}
+  .auth-tab{
+    background:none;border:none;color:var(--text-faint);font:inherit;font-size:15px;
+    cursor:pointer;padding:0 0 12px;border-bottom:2px solid transparent;margin-bottom:-1px;
+  }
+  .auth-tab.active{color:var(--text);border-bottom-color:var(--gold);}
+  .auth-title{font-size:26px;font-weight:500;margin:0 0 6px;}
+  .auth-sub{color:var(--text-dim);font-size:14px;margin:0 0 26px;}
+
+  label{display:block;font-size:13px;color:var(--text-dim);margin:0 0 6px;}
+  input[type=text],input[type=email],input[type=password],select,textarea{
+    width:100%;background:var(--bg-inset);border:1px solid var(--line);
+    color:var(--text);font:inherit;font-size:14.5px;
+    padding:11px 13px;border-radius:var(--radius);margin-bottom:16px;
+  }
+  input:focus,select:focus,textarea:focus{
+    outline:none;border-color:var(--gold);
+  }
+  .field-row{display:flex;gap:12px;}
+  .field-row > div{flex:1;}
+
+  .btn{
+    display:inline-flex;align-items:center;justify-content:center;gap:8px;
+    background:var(--gold);color:#1B1712;border:none;
+    font:inherit;font-size:14px;font-weight:600;
+    padding:11px 20px;border-radius:var(--radius);cursor:pointer;
+    transition:background 0.15s ease;
+  }
+  .btn:hover{background:var(--gold-bright);}
+  .btn:disabled{background:var(--bg-inset);color:var(--text-faint);cursor:not-allowed;}
+  .btn-ghost{
+    background:none;border:1px solid var(--line);color:var(--text);
+  }
+  .btn-ghost:hover{border-color:var(--text-faint);background:none;}
+  .btn-block{width:100%;}
+  .btn-small{padding:7px 14px;font-size:13px;}
+
+  .error-msg{
+    background:rgba(180,87,74,0.12);border:1px solid rgba(180,87,74,0.4);
+    color:#D89087;font-size:13.5px;padding:10px 13px;border-radius:var(--radius);
+    margin-bottom:16px;
+  }
+  .toast{
+    position:fixed;top:20px;left:50%;transform:translateX(-50%);
+    background:var(--bg-panel);border:1px solid var(--gold);color:var(--text);
+    padding:12px 20px;border-radius:var(--radius);font-size:14px;
+    box-shadow:0 8px 24px rgba(0,0,0,0.4);z-index:100;
+    animation:toast-in 0.25s ease;
+  }
+  @keyframes toast-in{from{opacity:0;transform:translate(-50%,-8px);}to{opacity:1;transform:translate(-50%,0);}}
+
+  /* ---------- Dashboard ---------- */
+  #dashboard{animation:rise 0.4s ease;}
+  @keyframes rise{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:translateY(0);}}
+
+  .onboarding{
+    border:1px solid var(--line);border-radius:var(--radius);
+    padding:20px 22px;margin-bottom:36px;background:var(--bg-panel);
+  }
+  .onboarding-title{font-size:15px;color:var(--text-dim);margin:0 0 14px;}
+  .steps{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:10px;}
+  .steps li{display:flex;align-items:center;gap:12px;font-size:14px;}
+  .step-num{
+    width:20px;height:20px;border-radius:50%;border:1px solid var(--text-faint);
+    display:flex;align-items:center;justify-content:center;font-size:11px;
+    color:var(--text-faint);flex:none;
+  }
+  .steps li.done .step-num{background:var(--sage);border-color:var(--sage);color:#171310;}
+  .steps li.done{color:var(--text-dim);text-decoration:line-through;text-decoration-color:var(--line);}
+
+  section.block{margin-bottom:44px;}
+  .block-head{
+    display:flex;align-items:center;gap:10px;margin-bottom:18px;
+    padding-bottom:12px;border-bottom:1px solid var(--line);
+  }
+  .block-head .mark{width:6px;height:6px;border-radius:50%;background:var(--gold);flex:none;}
+  .block-head h2{font-size:18px;font-weight:500;margin:0;flex:1;}
+  .block-head .meta{font-size:13px;color:var(--text-faint);}
+
+  /* Plans */
+  .plans{display:flex;flex-direction:column;gap:0;}
+  .plan-row{
+    display:flex;align-items:center;gap:16px;
+    padding:16px 0;border-bottom:1px solid var(--line);
+  }
+  .plan-row:last-child{border-bottom:none;}
+  .plan-info{flex:1;}
+  .plan-name{font-size:15.5px;font-weight:500;}
+  .plan-desc{font-size:13px;color:var(--text-dim);margin-top:2px;}
+  .plan-price{font-family:'IBM Plex Mono',monospace;font-size:14px;color:var(--text-dim);white-space:nowrap;}
+  .plan-actions{display:flex;gap:8px;}
+
+  .active-sub{
+    display:flex;align-items:center;gap:10px;padding:14px 16px;
+    background:rgba(143,163,126,0.1);border:1px solid rgba(143,163,126,0.35);
+    border-radius:var(--radius);margin-bottom:18px;font-size:14px;
+  }
+  .active-sub .badge-dot{width:8px;height:8px;border-radius:50%;background:var(--sage);flex:none;}
+
+  /* Instagram */
+  .ig-status{display:flex;align-items:center;justify-content:space-between;gap:16px;}
+  .ig-info{display:flex;align-items:center;gap:10px;font-size:14.5px;}
+  .ig-info .badge-dot{width:8px;height:8px;border-radius:50%;flex:none;}
+  .ig-info .badge-dot.on{background:var(--sage);}
+  .ig-info .badge-dot.off{background:var(--text-faint);}
+  .ig-username{color:var(--text-dim);font-family:'IBM Plex Mono',monospace;font-size:13.5px;}
+
+  /* Upload */
+  .drop-zone{
+    border:1px dashed var(--line);border-radius:var(--radius);
+    padding:28px 20px;text-align:center;cursor:pointer;
+    transition:border-color 0.15s ease;margin-bottom:18px;
+  }
+  .drop-zone:hover,.drop-zone.drag{border-color:var(--gold);}
+  .drop-zone input{display:none;}
+  .drop-zone .dz-label{font-size:14px;color:var(--text-dim);}
+  .drop-zone .dz-file{font-size:14px;color:var(--gold-bright);font-family:'IBM Plex Mono',monospace;}
+  .checkbox-row{display:flex;align-items:center;gap:9px;margin-bottom:20px;}
+  .checkbox-row input{width:auto;margin:0;}
+  .checkbox-row label{margin:0;font-size:14px;color:var(--text);}
+  .hint{font-size:12.5px;color:var(--text-faint);margin-top:-12px;margin-bottom:18px;}
+
+  /* Jobs */
+  .job-list{display:flex;flex-direction:column;gap:0;}
+  .job-row{
+    display:flex;align-items:flex-start;gap:14px;
+    padding:14px 0;border-bottom:1px solid var(--line);
+  }
+  .job-row:last-child{border-bottom:none;}
+  .job-main{flex:1;min-width:0;}
+  .job-file{font-size:14px;font-family:'IBM Plex Mono',monospace;}
+  .job-caption{font-size:13px;color:var(--text-dim);margin-top:4px;}
+  .job-time{font-size:12px;color:var(--text-faint);margin-top:4px;font-family:'IBM Plex Mono',monospace;}
+  .job-err{font-size:12.5px;color:var(--brick);margin-top:4px;}
+
+  .pill{
+    font-size:11.5px;padding:3px 9px;border-radius:20px;white-space:nowrap;
+    font-family:'IBM Plex Mono',monospace;transition:background 0.3s ease,color 0.3s ease;
+  }
+  .pill-pending{background:var(--bg-inset);color:var(--text-faint);}
+  .pill-processing{background:rgba(200,155,74,0.18);color:var(--gold-bright);animation:pulse 1.6s ease-in-out infinite;}
+  .pill-done{background:rgba(143,163,126,0.18);color:var(--sage);}
+  .pill-failed{background:rgba(180,87,74,0.18);color:#D89087;}
+  @keyframes pulse{0%,100%{opacity:1;}50%{opacity:0.55;}}
+
+  .empty{color:var(--text-faint);font-size:14px;padding:6px 0;}
+
+  @media (max-width:520px){
+    .plan-row{flex-wrap:wrap;}
+    .plan-actions{width:100%;}
+    .plan-actions .btn{flex:1;}
+    .ig-status{flex-direction:column;align-items:flex-start;}
+  }
+
+  /* Admin panel */
+  .stat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--line);border:1px solid var(--line);margin-bottom:36px;}
+  .stat-box{background:var(--bg);padding:18px 16px;}
+  .stat-num{font-family:'Fraunces',serif;font-size:26px;color:var(--gold-bright);}
+  .stat-label{font-size:12px;color:var(--text-dim);margin-top:4px;}
+  .admin-table-wrap{overflow-x:auto;}
+  table.admin-table{width:100%;border-collapse:collapse;font-size:13.5px;}
+  table.admin-table th{
+    text-align:left;color:var(--text-faint);font-weight:500;font-size:12px;
+    padding:6px 10px 6px 0;border-bottom:1px solid var(--line);white-space:nowrap;
+  }
+  table.admin-table td{padding:9px 10px 9px 0;border-bottom:1px solid var(--line);white-space:nowrap;}
+  table.admin-table td.wrap{white-space:normal;}
+  .plan-admin-row{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--line);flex-wrap:wrap;}
+  .plan-admin-row:last-child{border-bottom:none;}
+  .plan-admin-row .pname{flex:1;min-width:120px;font-size:14.5px;}
+  .plan-admin-row input[type=text]{width:120px;margin:0;padding:7px 10px;font-size:13.5px;}
+  .plan-admin-row .active-toggle{display:flex;align-items:center;gap:6px;font-size:12.5px;color:var(--text-dim);}
+  .plan-admin-row .active-toggle input{width:auto;margin:0;}
+
+  @media (max-width:600px){
+    .stat-grid{grid-template-columns:repeat(2,1fr);}
+  }
+</style>
+</head>
+<body>
+
+<div class="shell">
+  <div class="topbar">
+    <div class="wordmark"><img src="buba-logo.png" alt="Buba"> Buba</div>
+    <div class="who" id="whoBar" style="display:none;">
+      <span id="whoEmail"></span>
+      <button id="adminLinkBtn" style="display:none;" onclick="showAdminPanel()">Admin panel</button>
+      <button onclick="logout()">Chiqish</button>
+    </div>
+  </div>
+
+  <!-- AUTH SCREEN -->
+  <div class="auth-wrap" id="authScreen">
+    <div class="auth-panel">
+      <div class="auth-tabs">
+        <button class="auth-tab active" id="tabLogin" onclick="switchTab('login')">Kirish</button>
+        <button class="auth-tab" id="tabRegister" onclick="switchTab('register')">Ro'yxatdan o'tish</button>
+      </div>
+
+      <div id="loginForm">
+        <h1 class="auth-title">Xush kelibsiz</h1>
+        <p class="auth-sub">Hisobingizga kiring.</p>
+        <div id="loginError"></div>
+        <label>Email</label>
+        <input type="email" id="loginEmail" autocomplete="email">
+        <label>Parol</label>
+        <input type="password" id="loginPassword" autocomplete="current-password">
+        <button class="btn btn-block" onclick="doLogin()">Kirish</button>
+      </div>
+
+      <div id="registerForm" style="display:none;">
+        <h1 class="auth-title">Hisob oching</h1>
+        <p class="auth-sub">Bir necha soniyada tayyor.</p>
+        <div id="registerError"></div>
+        <label>Ism</label>
+        <input type="text" id="regName" autocomplete="name">
+        <label>Email</label>
+        <input type="email" id="regEmail" autocomplete="email">
+        <label>Parol</label>
+        <input type="password" id="regPassword" autocomplete="new-password">
+        <button class="btn btn-block" onclick="doRegister()">Ro'yxatdan o'tish</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- DASHBOARD -->
+  <div id="dashboard" style="display:none;">
+
+    <div class="onboarding" id="onboarding" style="display:none;">
+      <p class="onboarding-title">Boshlash uchun uchta qadam</p>
+      <ul class="steps">
+        <li id="stepSub"><span class="step-num">1</span> Tarif tanlab to'lov qiling</li>
+        <li id="stepIg"><span class="step-num">2</span> Instagram akkauntingizni ulang</li>
+        <li id="stepUpload"><span class="step-num">3</span> Birinchi videongizni yuklang</li>
+      </ul>
+    </div>
+
+    <section class="block">
+      <div class="block-head"><span class="mark"></span><h2>Obuna</h2></div>
+      <div id="activeSubBox"></div>
+      <div class="plans" id="plansList"><p class="empty">Yuklanmoqda…</p></div>
+    </section>
+
+    <section class="block">
+      <div class="block-head"><span class="mark"></span><h2>Instagram</h2></div>
+      <div class="ig-status" id="igStatus"><p class="empty">Yuklanmoqda…</p></div>
+    </section>
+
+    <section class="block">
+      <div class="block-head"><span class="mark"></span><h2>Yangi video</h2></div>
+      <div id="uploadError"></div>
+      <div class="drop-zone" id="dropZone" onclick="document.getElementById('fileInput').click()">
+        <input type="file" id="fileInput" accept="video/*" onchange="onFileChosen()">
+        <div class="dz-label" id="dzLabel">Video tanlash uchun bosing, yoki shu yerga tashlang</div>
+      </div>
+      <label>Soha</label>
+      <input type="text" id="nicheInput" placeholder="masalan: fitnes, ta'lim, oshxona" value="shaxsiy brend">
+      <div class="field-row">
+        <div>
+          <label>Til</label>
+          <select id="langInput">
+            <option value="uz" selected>O'zbekcha</option>
+            <option value="ru">Ruscha</option>
+            <option value="en">Inglizcha</option>
+          </select>
+        </div>
+      </div>
+      <div class="checkbox-row">
+        <input type="checkbox" id="publishCheck">
+        <label for="publishCheck">Tayyor bo'lgach Instagram'ga avtomatik joylash</label>
+      </div>
+      <div class="hint" id="publishHint"></div>
+      <button class="btn" id="uploadBtn" onclick="doUpload()">Yuklash va ishlov berish</button>
+    </section>
+
+    <section class="block">
+      <div class="block-head"><span class="mark"></span><h2>Ishlar tarixi</h2><span class="meta" id="jobsMeta"></span></div>
+      <div class="job-list" id="jobsList"><p class="empty">Yuklanmoqda…</p></div>
+    </section>
+
+  </div>
+
+  <!-- ADMIN PANEL -->
+  <div id="adminPanel" style="display:none;">
+    <div class="block-head" style="border-bottom:none;margin-bottom:8px;">
+      <h2>Admin panel</h2>
+      <button class="btn btn-ghost btn-small" onclick="showDashboard()">← Mening kabinetim</button>
+    </div>
+
+    <div class="stat-grid" id="statGrid">
+      <div class="stat-box"><div class="stat-num">—</div><div class="stat-label">Foydalanuvchilar</div></div>
+      <div class="stat-box"><div class="stat-num">—</div><div class="stat-label">Faol obunalar</div></div>
+      <div class="stat-box"><div class="stat-num">—</div><div class="stat-label">Jami tushum</div></div>
+      <div class="stat-box"><div class="stat-num">—</div><div class="stat-label">Bu oy tushum</div></div>
+    </div>
+
+    <section class="block">
+      <div class="block-head"><span class="mark"></span><h2>Tariflar va narxlar</h2></div>
+      <div id="adminPlansList"><p class="empty">Yuklanmoqda…</p></div>
+
+      <p class="onboarding-title" style="margin-top:24px;">Yangi tarif qo'shish</p>
+      <div class="field-row">
+        <div><label>Nomi</label><input type="text" id="newPlanName" placeholder="masalan: VIP"></div>
+        <div><label>Narxi (so'm)</label><input type="text" id="newPlanPrice" placeholder="499000"></div>
+      </div>
+      <div class="field-row">
+        <div><label>Muddati (kun)</label><input type="text" id="newPlanDays" placeholder="30" value="30"></div>
+        <div><label>Tavsif</label><input type="text" id="newPlanDesc" placeholder="qisqa tavsif"></div>
+      </div>
+      <button class="btn btn-small" id="createPlanBtn" onclick="createPlan()">Tarif qo'shish</button>
+    </section>
+
+    <section class="block">
+      <div class="block-head"><span class="mark"></span><h2>Foydalanuvchilar</h2></div>
+      <div class="admin-table-wrap" id="adminUsersList"><p class="empty">Yuklanmoqda…</p></div>
+    </section>
+
+    <section class="block">
+      <div class="block-head"><span class="mark"></span><h2>To'lovlar tarixi</h2></div>
+      <div class="admin-table-wrap" id="adminTxList"><p class="empty">Yuklanmoqda…</p></div>
+    </section>
+  </div>
+
+</div>
+
+<script>
+const API_BASE = ''; // bo'sh — frontend backend bilan bir domenda joylashgan deb hisoblanadi
+
+let token = localStorage.getItem('ka_token') || null;
+let pollHandle = null;
+let currentPlans = [];
+let igConnected = false;
+let hasActiveSub = false;
+
+function api(path, opts={}) {
+  const headers = opts.headers || {};
+  if (token) headers['Authorization'] = 'Bearer ' + token;
+  if (opts.body && !(opts.body instanceof FormData)) {
+    headers['Content-Type'] = 'application/json';
+  }
+  return fetch(API_BASE + path, {...opts, headers}).then(async res => {
+    let data = null;
+    try { data = await res.json(); } catch(e) {}
+    if (!res.ok) {
+      const msg = (data && data.detail) ? data.detail : ('Xatolik (' + res.status + ')');
+      throw new Error(msg);
+    }
+    return data;
+  });
+}
+
+function switchTab(which) {
+  document.getElementById('tabLogin').classList.toggle('active', which === 'login');
+  document.getElementById('tabRegister').classList.toggle('active', which === 'register');
+  document.getElementById('loginForm').style.display = which === 'login' ? 'block' : 'none';
+  document.getElementById('registerForm').style.display = which === 'register' ? 'block' : 'none';
+}
+
+function showError(elId, msg) {
+  document.getElementById(elId).innerHTML = '<div class="error-msg">' + escapeHtml(msg) + '</div>';
+}
+function clearError(elId) {
+  document.getElementById(elId).innerHTML = '';
+}
+function escapeHtml(s) {
+  const d = document.createElement('div');
+  d.textContent = s;
+  return d.innerHTML;
+}
+function showToast(msg) {
+  const t = document.createElement('div');
+  t.className = 'toast';
+  t.textContent = msg;
+  document.body.appendChild(t);
+  setTimeout(() => t.remove(), 3200);
+}
+
+async function doLogin() {
+  clearError('loginError');
+  const email = document.getElementById('loginEmail').value.trim();
+  const password = document.getElementById('loginPassword').value;
+  if (!email || !password) { showError('loginError', 'Email va parolni kiriting'); return; }
+  try {
+    const data = await api('/auth/login', { method: 'POST', body: JSON.stringify({email, password}) });
+    token = data.access_token;
+    localStorage.setItem('ka_token', token);
+    await enterDashboard();
+  } catch (e) { showError('loginError', e.message); }
+}
+
+async function doRegister() {
+  clearError('registerError');
+  const full_name = document.getElementById('regName').value.trim();
+  const email = document.getElementById('regEmail').value.trim();
+  const password = document.getElementById('regPassword').value;
+  if (!email || !password) { showError('registerError', 'Email va parolni kiriting'); return; }
+  if (password.length < 6) { showError('registerError', 'Parol kamida 6 belgidan iborat bo\'lsin'); return; }
+  try {
+    await api('/auth/register', { method: 'POST', body: JSON.stringify({email, password, full_name: full_name || null}) });
+    const data = await api('/auth/login', { method: 'POST', body: JSON.stringify({email, password}) });
+    token = data.access_token;
+    localStorage.setItem('ka_token', token);
+    await enterDashboard();
+  } catch (e) { showError('registerError', e.message); }
+}
+
+function logout() {
+  token = null;
+  localStorage.removeItem('ka_token');
+  if (pollHandle) clearInterval(pollHandle);
+  document.getElementById('dashboard').style.display = 'none';
+  document.getElementById('adminPanel').style.display = 'none';
+  document.getElementById('adminLinkBtn').style.display = 'none';
+  document.getElementById('whoBar').style.display = 'none';
+  document.getElementById('authScreen').style.display = 'flex';
+}
+
+async function enterDashboard() {
+  document.getElementById('authScreen').style.display = 'none';
+  document.getElementById('dashboard').style.display = 'block';
+  document.getElementById('whoBar').style.display = 'flex';
+
+  try {
+    const me = await api('/auth/me');
+    document.getElementById('whoEmail').textContent = me.email;
+    if (me.is_admin) {
+      document.getElementById('adminLinkBtn').style.display = 'inline-flex';
+    }
+  } catch (e) { logout(); return; }
+
+  await Promise.all([loadPlans(), loadSubscriptions(), loadInstagramStatus(), loadJobs()]);
+  updateOnboarding();
+  startPolling();
+}
+
+function showAdminPanel() {
+  document.getElementById('dashboard').style.display = 'none';
+  document.getElementById('adminPanel').style.display = 'block';
+  loadAdminStats();
+  loadAdminPlans();
+  loadAdminUsers();
+  loadAdminTransactions();
+}
+
+function showDashboard() {
+  document.getElementById('adminPanel').style.display = 'none';
+  document.getElementById('dashboard').style.display = 'block';
+}
+
+function fmtSom(n) {
+  return new Intl.NumberFormat('uz-UZ').format(n) + " so'm";
+}
+
+async function loadAdminStats() {
+  try {
+    const s = await api('/admin/stats');
+    const boxes = document.querySelectorAll('#statGrid .stat-num');
+    boxes[0].textContent = s.total_users;
+    boxes[1].textContent = s.active_subscriptions;
+    boxes[2].textContent = fmtSom(s.total_revenue_uzs);
+    boxes[3].textContent = fmtSom(s.revenue_this_month_uzs);
+  } catch (e) { showToast(e.message); }
+}
+
+async function loadAdminPlans() {
+  const box = document.getElementById('adminPlansList');
+  try {
+    const plans = await api('/admin/plans');
+    if (!plans.length) { box.innerHTML = '<p class="empty">Tarif yo\'q</p>'; return; }
+    box.innerHTML = plans.map(p => `
+      <div class="plan-admin-row">
+        <div class="pname">${escapeHtml(p.name)}</div>
+        <input type="text" id="planPrice_${p.id}" value="${p.price_uzs}">
+        <label class="active-toggle"><input type="checkbox" id="planActive_${p.id}" ${p.is_active ? 'checked' : ''}> faol</label>
+        <button class="btn btn-ghost btn-small" onclick="savePlan(${p.id})">Saqlash</button>
+      </div>
+    `).join('');
+  } catch (e) { box.innerHTML = '<p class="empty">Yuklab bo\'lmadi</p>'; }
+}
+
+async function savePlan(planId) {
+  const price = document.getElementById('planPrice_' + planId).value;
+  const active = document.getElementById('planActive_' + planId).checked;
+  const params = new URLSearchParams({ price_uzs: price, is_active: active });
+  try {
+    await api('/admin/plans/' + planId + '?' + params.toString(), { method: 'PUT' });
+    showToast('Saqlandi');
+    loadAdminPlans();
+    loadPlans();
+  } catch (e) { showToast(e.message); }
+}
+
+async function createPlan() {
+  const name = document.getElementById('newPlanName').value.trim();
+  const price = document.getElementById('newPlanPrice').value;
+  const days = document.getElementById('newPlanDays').value || '30';
+  const desc = document.getElementById('newPlanDesc').value.trim();
+  if (!name || !price) { showToast("Nomi va narxini kiriting"); return; }
+  const params = new URLSearchParams({ name, price_uzs: price, duration_days: days, description: desc });
+  try {
+    await api('/admin/plans?' + params.toString(), { method: 'POST' });
+    showToast("Yangi tarif qo'shildi");
+    document.getElementById('newPlanName').value = '';
+    document.getElementById('newPlanPrice').value = '';
+    document.getElementById('newPlanDesc').value = '';
+    loadAdminPlans();
+  } catch (e) { showToast(e.message); }
+}
+
+async function loadAdminUsers() {
+  const box = document.getElementById('adminUsersList');
+  try {
+    const users = await api('/admin/users');
+    if (!users.length) { box.innerHTML = '<p class="empty">Foydalanuvchi yo\'q</p>'; return; }
+    box.innerHTML = `<table class="admin-table"><thead><tr>
+        <th>Email</th><th>Ro'yxatdan o'tgan</th><th>Obuna</th><th>Tugash sanasi</th>
+      </tr></thead><tbody>` + users.map(u => `
+        <tr>
+          <td class="wrap">${escapeHtml(u.email)}${u.is_admin ? ' <span style="color:var(--gold-bright);">(admin)</span>' : ''}</td>
+          <td>${new Date(u.created_at).toLocaleDateString('uz-UZ')}</td>
+          <td>${u.subscription_status === 'active' ? "<span style='color:var(--sage)'>faol</span>" : "yo'q"}</td>
+          <td>${u.subscription_end_date ? new Date(u.subscription_end_date).toLocaleDateString('uz-UZ') : '—'}</td>
+        </tr>
+      `).join('') + `</tbody></table>`;
+  } catch (e) { box.innerHTML = '<p class="empty">Yuklab bo\'lmadi</p>'; }
+}
+
+async function loadAdminTransactions() {
+  const box = document.getElementById('adminTxList');
+  try {
+    const txs = await api('/admin/transactions');
+    if (!txs.length) { box.innerHTML = '<p class="empty">Hali to\'lov bo\'lmagan</p>'; return; }
+    box.innerHTML = `<table class="admin-table"><thead><tr>
+        <th>Email</th><th>Tarif</th><th>Usul</th><th>Summa</th><th>Holat</th><th>Sana</th>
+      </tr></thead><tbody>` + txs.map(t => `
+        <tr>
+          <td class="wrap">${escapeHtml(t.user_email)}</td>
+          <td>${escapeHtml(t.plan_name)}</td>
+          <td>${t.provider}</td>
+          <td>${fmtSom(t.amount_uzs)}</td>
+          <td>${t.state === 'performed' ? "<span style='color:var(--sage)'>to'langan</span>" : t.state}</td>
+          <td>${new Date(t.created_at).toLocaleDateString('uz-UZ')}</td>
+        </tr>
+      `).join('') + `</tbody></table>`;
+  } catch (e) { box.innerHTML = '<p class="empty">Yuklab bo\'lmadi</p>'; }
+}
+
+async function loadPlans() {
+  try {
+    currentPlans = await api('/plans');
+    renderPlans();
+  } catch (e) {
+    document.getElementById('plansList').innerHTML = '<p class="empty">Tariflarni yuklab bo\'lmadi</p>';
+  }
+}
+
+function fmtPrice(p) {
+  return new Intl.NumberFormat('uz-UZ').format(p) + " so'm";
+}
+
+function renderPlans() {
+  const box = document.getElementById('plansList');
+  if (!currentPlans.length) { box.innerHTML = '<p class="empty">Hozircha tarif yo\'q</p>'; return; }
+  box.innerHTML = currentPlans.map(p => `
+    <div class="plan-row">
+      <div class="plan-info">
+        <div class="plan-name">${escapeHtml(p.name)}</div>
+        <div class="plan-desc">${escapeHtml(p.description || '')} · ${p.duration_days} kun</div>
+      </div>
+      <div class="plan-price">${fmtPrice(p.price_uzs)}</div>
+      <div class="plan-actions">
+        <button class="btn btn-small" onclick="subscribe(${p.id}, 'payme')">Payme</button>
+        <button class="btn btn-ghost btn-small" onclick="subscribe(${p.id}, 'click')">Click</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+async function subscribe(planId, provider) {
+  try {
+    const res = await api('/subscribe', { method: 'POST', body: JSON.stringify({plan_id: planId, provider}) });
+    window.location.href = res.payment_url;
+  } catch (e) { showToast(e.message); }
+}
+
+async function loadSubscriptions() {
+  const box = document.getElementById('activeSubBox');
+  try {
+    const subs = await api('/subscriptions/me');
+    const active = subs.find(s => s.status === 'active');
+    hasActiveSub = !!active;
+    if (active) {
+      const end = new Date(active.end_date);
+      box.innerHTML = `<div class="active-sub"><span class="badge-dot"></span> Faol obuna — ${end.toLocaleDateString('uz-UZ')} gacha</div>`;
+    } else {
+      box.innerHTML = '';
+    }
+  } catch (e) { box.innerHTML = ''; }
+}
+
+async function loadInstagramStatus() {
+  const box = document.getElementById('igStatus');
+  try {
+    const status = await api('/instagram/me');
+    igConnected = status.connected;
+    if (status.connected) {
+      box.innerHTML = `
+        <div class="ig-info"><span class="badge-dot on"></span> Ulangan — <span class="ig-username">@${escapeHtml(status.username || status.ig_user_id)}</span></div>
+        <button class="btn btn-ghost btn-small" onclick="disconnectInstagram()">Uzish</button>`;
+    } else {
+      box.innerHTML = `
+        <div class="ig-info"><span class="badge-dot off"></span> Ulanmagan</div>
+        <button class="btn btn-small" onclick="connectInstagram()">Ulash</button>`;
+    }
+  } catch (e) {
+    box.innerHTML = '<p class="empty">Holatni yuklab bo\'lmadi</p>';
+  }
+  updatePublishHint();
+}
+
+async function connectInstagram() {
+  try {
+    const res = await api('/instagram/connect');
+    window.location.href = res.authorize_url;
+  } catch (e) { showToast(e.message); }
+}
+
+async function disconnectInstagram() {
+  try {
+    await api('/instagram/disconnect', { method: 'DELETE' });
+    await loadInstagramStatus();
+    showToast('Instagram uzildi');
+  } catch (e) { showToast(e.message); }
+}
+
+function updatePublishHint() {
+  const hint = document.getElementById('publishHint');
+  if (!igConnected) {
+    hint.textContent = 'Avtomatik joylash uchun avval Instagram akkauntingizni ulashingiz kerak.';
+  } else {
+    hint.textContent = '';
+  }
+}
+
+function updateOnboarding() {
+  const el = document.getElementById('onboarding');
+  document.getElementById('stepSub').classList.toggle('done', hasActiveSub);
+  document.getElementById('stepIg').classList.toggle('done', igConnected);
+  const anyJobs = document.getElementById('jobsList').dataset.hasJobs === '1';
+  document.getElementById('stepUpload').classList.toggle('done', anyJobs);
+  el.style.display = (hasActiveSub && igConnected && anyJobs) ? 'none' : 'block';
+}
+
+let chosenFile = null;
+function onFileChosen() {
+  const input = document.getElementById('fileInput');
+  chosenFile = input.files[0] || null;
+  document.getElementById('dzLabel').textContent = chosenFile ? chosenFile.name : 'Video tanlash uchun bosing, yoki shu yerga tashlang';
+  if (chosenFile) document.getElementById('dzLabel').classList.add('dz-file');
+}
+
+const dz = document.getElementById('dropZone');
+dz.addEventListener('dragover', e => { e.preventDefault(); dz.classList.add('drag'); });
+dz.addEventListener('dragleave', () => dz.classList.remove('drag'));
+dz.addEventListener('drop', e => {
+  e.preventDefault(); dz.classList.remove('drag');
+  if (e.dataTransfer.files.length) {
+    document.getElementById('fileInput').files = e.dataTransfer.files;
+    onFileChosen();
+  }
+});
+
+async function doUpload() {
+  clearError('uploadError');
+  if (!chosenFile) { showError('uploadError', 'Avval video tanlang'); return; }
+  if (!hasActiveSub) { showError('uploadError', "Video yuklash uchun faol obuna kerak. Yuqoridagi tariflardan birini tanlang."); return; }
+
+  const publish = document.getElementById('publishCheck').checked;
+  if (publish && !igConnected) { showError('uploadError', 'Avtomatik joylash uchun avval Instagram ulang.'); return; }
+
+  const btn = document.getElementById('uploadBtn');
+  btn.disabled = true;
+  btn.textContent = 'Yuklanmoqda…';
+
+  const form = new FormData();
+  form.append('file', chosenFile);
+  form.append('niche', document.getElementById('nicheInput').value || 'shaxsiy brend');
+  form.append('language', document.getElementById('langInput').value);
+  form.append('publish', publish ? 'true' : 'false');
+
+  try {
+    await api('/content/upload-and-publish', { method: 'POST', body: form });
+    showToast('Video qabul qilindi — ishlov berilmoqda');
+    chosenFile = null;
+    document.getElementById('fileInput').value = '';
+    document.getElementById('dzLabel').textContent = 'Video tanlash uchun bosing, yoki shu yerga tashlang';
+    document.getElementById('dzLabel').classList.remove('dz-file');
+    await loadJobs();
+    updateOnboarding();
+  } catch (e) {
+    showError('uploadError', e.message);
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Yuklash va ishlov berish';
+  }
+}
+
+const statusLabel = { pending: 'navbatda', processing: 'ishlanmoqda', done: 'tayyor', failed: 'xato' };
+
+async function loadJobs() {
+  const box = document.getElementById('jobsList');
+  try {
+    const jobs = await api('/content/jobs');
+    box.dataset.hasJobs = jobs.length ? '1' : '0';
+    document.getElementById('jobsMeta').textContent = jobs.length ? (jobs.length + ' ta') : '';
+    if (!jobs.length) { box.innerHTML = '<p class="empty">Hali video yuklanmagan</p>'; return; }
+
+    const detailed = await Promise.all(jobs.slice(0, 15).map(j => api('/content/jobs/' + j.id).catch(() => j)));
+
+    box.innerHTML = detailed.map(j => `
+      <div class="job-row">
+        <div class="job-main">
+          <div class="job-file">${escapeHtml(j.input_filename || ('#' + j.id))}</div>
+          ${j.result_caption ? `<div class="job-caption">${escapeHtml(j.result_caption)}</div>` : ''}
+          ${j.error ? `<div class="job-err">${escapeHtml(j.error)}</div>` : ''}
+          <div class="job-time">${new Date(j.created_at).toLocaleString('uz-UZ')}</div>
+        </div>
+        <span class="pill pill-${j.status}">${statusLabel[j.status] || j.status}</span>
+      </div>
+    `).join('');
+  } catch (e) {
+    box.innerHTML = '<p class="empty">Ishlarni yuklab bo\'lmadi</p>';
+  }
+}
+
+function startPolling() {
+  if (pollHandle) clearInterval(pollHandle);
+  pollHandle = setInterval(async () => {
+    await loadJobs();
+    updateOnboarding();
+  }, 5000);
+}
+
+function handleInstagramRedirect() {
+  const params = new URLSearchParams(window.location.search);
+  if (params.get('instagram') === 'connected') {
+    showToast('Instagram muvaffaqiyatli ulandi');
+    window.history.replaceState({}, '', window.location.pathname);
+  }
+}
+
+// ---- Boshlash ----
+if (token) {
+  enterDashboard().catch(() => logout());
+}
+handleInstagramRedirect();
+
+// Foydalanuvchi to'lov yoki Instagram ruxsat sahifasidan qaytganda
+// (boshqa oyna/tab'dan) holatni darhol yangilaymiz
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'visible' && token) {
+    loadSubscriptions();
+    loadInstagramStatus();
+    loadJobs().then(updateOnboarding);
+  }
+});
+</script>
+</body>
+</html>
