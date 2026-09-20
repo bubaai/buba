@@ -358,6 +358,19 @@
     </div>
 
     <section class="block">
+      <div class="block-head"><span class="mark"></span><h2>Sinov vositalari</h2></div>
+      <p class="hint" style="margin-top:0;margin-bottom:14px;">
+        Payme/Click va Instagram OAuth hali to'liq sozlanmagan bo'lsa ham,
+        saytni o'zingiz sinab ko'rishingiz uchun. Bu tugmalar faqat sizga
+        (adminga) ta'sir qiladi — mijozlar buni ko'rmaydi.
+      </p>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;">
+        <button class="btn btn-small" onclick="grantSelfTestSubscription()">O'zimga sinov obunasi berish</button>
+        <button class="btn btn-ghost btn-small" onclick="linkSelfTestInstagram()">buba_smm'ni ulash</button>
+      </div>
+    </section>
+
+    <section class="block">
       <div class="block-head"><span class="mark"></span><h2>Tariflar va narxlar</h2></div>
       <div id="adminPlansList"><p class="empty">Yuklanmoqda…</p></div>
 
@@ -508,6 +521,25 @@ function showAdminPanel() {
 function showDashboard() {
   document.getElementById('adminPanel').style.display = 'none';
   document.getElementById('dashboard').style.display = 'block';
+}
+
+async function grantSelfTestSubscription() {
+  try {
+    await api('/admin/self-test-subscription', { method: 'POST' });
+    showToast('Sinov obunasi faollashtirildi');
+    loadAdminStats();
+    loadSubscriptions();
+    updateOnboarding();
+  } catch (e) { showToast(e.message); }
+}
+
+async function linkSelfTestInstagram() {
+  try {
+    const res = await api('/admin/self-test-instagram', { method: 'POST' });
+    showToast('Instagram ulandi: @' + res.username);
+    loadInstagramStatus();
+    updateOnboarding();
+  } catch (e) { showToast(e.message); }
 }
 
 function fmtSom(n) {
